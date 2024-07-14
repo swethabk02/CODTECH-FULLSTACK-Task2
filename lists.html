@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog Posts</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Blog Posts</h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="{{ url_for('create') }}">Create Post</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section id="postList">
+            <!-- Posts will be dynamically loaded here -->
+        </section>
+    </main>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchPosts();
+        });
+
+        function fetchPosts() {
+            fetch('/api/posts')
+                .then(response => response.json())
+                .then(posts => {
+                    const postList = document.getElementById('postList');
+                    postList.innerHTML = '';
+                    posts.forEach(post => {
+                        const postHTML = `
+                            <article class="post">
+                                <h2>${post.title}</h2>
+                                <p>${post.content}</p>
+                                <a href="/view/${post.id}" class="btn">View</a>
+                                <button onclick="deletePost(${post.id})" class="btn">Delete</button>
+                            </article>
+                        `;
+                        postList.innerHTML += postHTML;
+                    });
+                })
+                .catch(error => console.error('Error fetching posts:', error));
+        }
+
+        function deletePost(postId) {
+            fetch(`/api/posts/${postId}`, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('Post deleted successfully');
+                    fetchPosts();
+                } else {
+                    throw new Error('Failed to delete post');
+                }
+            })
+            .catch(error => console.error('Error deleting post:', error));
+        }
+    </script>
+</body>
+</html>
+
+
